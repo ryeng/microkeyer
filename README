@@ -1,0 +1,6 @@
+Muxer/demuxer for the Microham Microkeyer device family.
+
+Splits the datastream into a set of ptys, one for each channel, so that
+the radio can be controlled as if connected through a standard serial
+port.
+
