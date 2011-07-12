@@ -337,7 +337,7 @@ void show_help()
 {
   printf("Usage: microkeyer [OPTIONS] -m MODEL DEVICE\n");
   printf("\n Help and debug:\n");
-  printf("  -m, --model=MODEL       Set keyer model (MK, DK, CK, MK2R, MK2R+)\n");
+  printf("  -m, --model=MODEL       Set keyer model (MK, MK2, MK2R, MK2R+, CK, DK, DK2, U2R, SM)\n");
   printf("  -h, --help              Display this help text\n");
   printf("  -v, --verbose           Show debug output (repeat for more verbosity)\n");
   printf("  -V, --version           Show version information\n");
@@ -371,14 +371,23 @@ char *parseargs(int argc, char *argv[])
     case 'm':
       if (!strcasecmp(optarg, "MK"))
 	keyer_model = MODEL_MK;
-      if (!strcasecmp(optarg, "DK"))
+      else if (!strcasecmp(optarg, "DK"))
 	keyer_model = MODEL_DK;
-      if (!strcasecmp(optarg, "CK"))
+      else if (!strcasecmp(optarg, "CK"))
 	keyer_model = MODEL_CK;
-      if (!strcasecmp(optarg, "MK2R"))
-	keyer_model = MODEL_2R;
-      if (!strcasecmp(optarg, "MK2R+"))
-	keyer_model = MODEL_2P;
+      else if (!strcasecmp(optarg, "MK2R"))
+	keyer_model = MODEL_MK2R;
+      else if (!strcasecmp(optarg, "MK2R+"))
+	keyer_model = MODEL_MK2RPLUS;
+      else if (!strcasecmp(optarg, "MK2"))
+	keyer_model = MODEL_MK2;
+      else if (!strcasecmp(optarg, "DK2"))
+	keyer_model = MODEL_DK2;
+      else if (!strcasecmp(optarg, "U2R"))
+	keyer_model = MODEL_U2R;
+      else if (!strcasecmp(optarg, "SM"))
+	keyer_model = MODEL_SM;
+      // TODO: Add MODEL_SMD
       break;
     case 'v':
       verbosity++;
@@ -443,34 +452,42 @@ int main(int argc, char *argv[])
   printf("Control: %s\n", (char *)ptsname(ports.control));
   FD_SET(ports.control, &allfds);
 
-  ports.radio1 = newpty();
-  printf("Radio 1: %s\n", (char *)ptsname(ports.radio1));
-  FD_SET(ports.radio1, &allfds);
+  if (keyer_model != MODEL_U2R) {
+    ports.radio1 = newpty();
+    printf("Radio 1: %s\n", (char *)ptsname(ports.radio1));
+    FD_SET(ports.radio1, &allfds);
+  }
 
-  if (keyer_model == MODEL_2R || keyer_model == MODEL_2P) {
+  if (keyer_model == MODEL_MK2R || keyer_model == MODEL_MK2RPLUS || keyer_model == MODEL_MK2 || keyer_model == MODEL_SM) {
+    // MK2 and SM has AUX, not RADIO2, but it is only the name of the port that changes
     ports.radio2 = newpty();
     printf("Radio 2: %s\n", (char *)ptsname(ports.radio2));
     FD_SET(ports.radio2, &allfds);
   }
 
-  if (keyer_model != MODEL_CK) {
+  if (keyer_model != MODEL_CK && keyer_model != MODEL_SM) {
     ports.fsk1 = newpty();
     printf("FSK 1: %s\n", (char *)ptsname(ports.fsk1));
     FD_SET(ports.fsk1, &allfds);
   }
-  if (keyer_model == MODEL_2R || keyer_model == MODEL_2P) {
+
+  if (keyer_model == MODEL_MK2R || keyer_model == MODEL_MK2RPLUS || keyer_model == MODEL_U2R) {
     ports.fsk2 = newpty();
     printf("FSK 2: %s\n", (char *)ptsname(ports.fsk1));
     FD_SET(ports.fsk2, &allfds);
   }
-  if (keyer_model != MODEL_DK) {
+
+  if (keyer_model != MODEL_DK && keyer_model != MODEL_SM) {
     ports.winkey = newpty();
     printf("Winkey: %s\n", (char *)ptsname(ports.winkey));
     FD_SET(ports.winkey, &allfds);
   }
-  ports.keyboard = newpty();
-  printf("Keyboard: %s\n", (char *)ptsname(ports.keyboard));
-  FD_SET(ports.keyboard, &allfds);
+
+  if (keyer_model != MODEL_SM) {
+    ports.keyboard = newpty();
+    printf("Keyboard: %s\n", (char *)ptsname(ports.keyboard));
+    FD_SET(ports.keyboard, &allfds);
+  }
 
   // Mux and demux until exit
   int framepos = 0; // Current position in input frame from device

@@ -9,11 +9,16 @@
  * Device models supported by the driver
  */
 #define MODEL_UNSUPPORTED 0x00 /* Unsupported device */
-#define MODEL_MK 0x01          /* microHAM micro KEYER */
-#define MODEL_DK 0x02          /* microHAM DIGI KEYER */
-#define MODEL_CK 0x03          /* microHAM CW KEYER */
-#define MODEL_2R 0x04          /* microHAM micro KEYER 2R */
-#define MODEL_2P 0x05          /* microHAM micro KEYER 2R+ */
+#define MODEL_MK       0x01          /* microHAM micro KEYER */
+#define MODEL_DK       0x02          /* microHAM DIGI KEYER */
+#define MODEL_CK       0x03          /* microHAM CW KEYER */
+#define MODEL_MK2R     0x04          /* microHAM micro KEYER 2R */
+#define MODEL_MK2RPLUS 0x05          /* microHAM micro KEYER 2R+ */
+#define MODEL_MK2      0x06          /* microHAM micro KEYER II */
+#define MODEL_DK2      0x07          /* microHAM DIGI KEYER II */
+#define MODEL_U2R      0x08          /* microHAM micro 2R */
+#define MODEL_SM       0x09          /* microHAM Station Master */
+#define MODEL_SMD      0x0A          /* microHAM Station Master Deluxe */
 
 /*
  * Bit fields in synchro byte (byte 0) of frame
