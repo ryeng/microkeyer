@@ -23,6 +23,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <sys/select.h>
+#define _XOPEN_SOURCE
 #include <stdlib.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -435,38 +436,40 @@ int main(int argc, char *argv[])
 
   // TODO: Check device type automatically with GET VERSION command and set keyer_model
 
+  // TODO: Add option to create symlinks and/or print pty slaves
+
   // Open ptys
   ports.control = newpty();
-  debugprintf(1, "Control: %s\n", ptsname(ports.control));
+  printf("Control: %s\n", (char *)ptsname(ports.control));
   FD_SET(ports.control, &allfds);
 
   ports.radio1 = newpty();
-  debugprintf(1, "Radio 1: %s\n", ptsname(ports.radio1));
+  printf("Radio 1: %s\n", (char *)ptsname(ports.radio1));
   FD_SET(ports.radio1, &allfds);
 
   if (keyer_model == MODEL_2R || keyer_model == MODEL_2P) {
     ports.radio2 = newpty();
-    debugprintf(1, "Radio 2: %s\n", ptsname(ports.radio2));
+    printf("Radio 2: %s\n", (char *)ptsname(ports.radio2));
     FD_SET(ports.radio2, &allfds);
   }
 
   if (keyer_model != MODEL_CK) {
     ports.fsk1 = newpty();
-    debugprintf(1, "FSK 1: %s\n", ptsname(ports.fsk1));
+    printf("FSK 1: %s\n", (char *)ptsname(ports.fsk1));
     FD_SET(ports.fsk1, &allfds);
   }
   if (keyer_model == MODEL_2R || keyer_model == MODEL_2P) {
     ports.fsk2 = newpty();
-    debugprintf(1, "FSK 2: %s\n", ptsname(ports.fsk1));
+    printf("FSK 2: %s\n", (char *)ptsname(ports.fsk1));
     FD_SET(ports.fsk2, &allfds);
   }
   if (keyer_model != MODEL_DK) {
     ports.winkey = newpty();
-    debugprintf(1, "Winkey: %s\n", ptsname(ports.winkey));
+    printf("Winkey: %s\n", (char *)ptsname(ports.winkey));
     FD_SET(ports.winkey, &allfds);
   }
   ports.keyboard = newpty();
-  debugprintf(1, "Keyboard: %s\n", ptsname(ports.keyboard));
+  printf("Keyboard: %s\n", (char *)ptsname(ports.keyboard));
   FD_SET(ports.keyboard, &allfds);
 
   // Mux and demux until exit
@@ -530,6 +533,10 @@ int main(int argc, char *argv[])
     // Construct and populate sequence
     sequence_init(sequence);
     if (read(ports.control, &data, 1) == 1) {
+      // NOTE: This does NOT implement the protocol correctly. This implementation
+      //       doesn't allow the end byte to occur within the command string. This
+      //       should be possible, as such bytes are legal and may occur.
+      // TODO: Add some out-of-band signalling to indicate start and end of a command
       debugprintf(6, "Input from control: %02x ('%c')\n", data, data);
       if (!controlendbyte) { // If 0x00, this is the start of a new command
 	debugprintf(7, "Start of new command\n");
