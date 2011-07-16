@@ -17,13 +17,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <getopt.h>
 #include <termios.h>
 #include <unistd.h>
 #include <sys/select.h>
-#define _XOPEN_SOURCE
 #include <stdlib.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -412,8 +413,6 @@ int main(int argc, char *argv[])
   struct ports ports = {-1, -1, -1, -1, -1, -1, -1, -1}; // File descriptors for device and ptys
   struct termios oldtio, newtio; // For keyer
   fd_set allfds;                 // All available file descriptors
-  unsigned char getversion[] = {0x05, 0x85}; // GET VERSION command
-  unsigned char deviceversion[256]; // Result of GET VERSION command
 
   // Parse command line arguments
   devicename = parseargs(argc, argv);
@@ -498,7 +497,6 @@ int main(int argc, char *argv[])
     fd_set fds; // File descriptors that are waited for by select
     struct timeval tv;
     int numready = -1; // Number of ready ports
-    int frames;
     frame_t frame; // Current frame read from device
     sequence_t sequence; // Next sequence to output to device
     unsigned char data; // Data read from pty
